@@ -18,7 +18,7 @@ app.add_middleware(
 from fastapi.responses import HTMLResponse
 @app.get("/", response_class=HTMLResponse)
 def root():
-    html_path = Path(__file__).parent / "index.html"
+    html_path = Path(__file__).parent.parent / "index.html"
     return html_path.read_text()
 
 
