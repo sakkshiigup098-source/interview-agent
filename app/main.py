@@ -16,10 +16,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 from fastapi.responses import HTMLResponse
-
 @app.get("/", response_class=HTMLResponse)
 def root():
-    return open("app/index.html").read()
+    html_path = Path(__file__).parent / "index.html"
+    return html_path.read_text()
+
 
 @app.get("/health")
 def health():
