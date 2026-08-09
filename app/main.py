@@ -15,9 +15,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-@app.get("/")
+from fastapi.responses import HTMLResponse
+
+@app.get("/", response_class=HTMLResponse)
 def root():
-    return {"message": "It's working!"}
+    return open("app/index.html").read()
 
 @app.get("/health")
 def health():
