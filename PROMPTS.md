@@ -57,3 +57,47 @@ conversation, based on three uploaded hackathon resources:
 - Final submission steps (creating the GitHub repo, running `git push`,
   deploying to a hosting provider) were performed manually by the
   candidate, following AI-provided instructions.
+
+## Deployment debugging (Vercel)
+
+After the initial build, a second AI-assisted session (Claude, via chat)
+covered getting the app correctly deployed and reachable:
+
+- Diagnosed a `{"detail":"Not Found"}` response at the root URL as expected
+  FastAPI behavior (no `GET /` route existed yet — only `/health` and
+  `POST /api/interview`), not a deployment failure.
+- Added a `GET /` route and, subsequently, a simple single-file HTML chat
+  frontend (`index.html`) so the deployed app has an actual interface
+  instead of raw JSON-only endpoints.
+- Debugged three separate issues while wiring the frontend into the
+  existing Python-only `vercel.json`:
+  1. `from __future__ import annotations` must be the first line in a
+     Python file — a later `pathlib` import had displaced it, crashing the
+     server with an Internal Server Error.
+  2. Vercel's Python builder does not automatically bundle non-Python
+     static files; needed `"config": {"includeFiles": "index.html"}` added
+     to the build step in `vercel.json`.
+  3. The file path used in `main.py` to read `index.html` had to match
+     where the file actually lived in the repo (project root, not `app/`),
+     fixed via `Path(__file__).parent.parent / "index.html"`.
+
+## Requirements verification pass
+
+Before final submission, did a full walkthrough with Claude cross-checking
+the actual code against the hackathon's technical requirements, rather than
+just trusting the original build:
+
+- Confirmed `orchestrator.py` hard-enforces `MIN_QUESTIONS = 8` and
+  `MIN_DISTINCT_DAYS = 4` before allowing the interview to end.
+- Confirmed follow-up questions are generated from real answer-quality
+  assessment (`assess_answer`), not a fixed script.
+- Confirmed full transcript is passed into every subsequent question and
+  into final feedback generation (context retention).
+- Confirmed `models.py`'s `InterviewResponse`/`Feedback` shapes match the
+  `POST /api/interview` contract described in `technical-spec.md`.
+- Confirmed `curriculum.json` contains real, complete data for all 31 days
+  / 8 modules (not a stubbed subset), so day-coverage guarantees in
+  `planner.py` are backed by genuine content.
+- Manually ran a live end-to-end interview against the deployed app to
+  confirm the follow-up logic and full question flow work in practice, not
+  just in code review.
